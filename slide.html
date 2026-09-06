@@ -217,7 +217,7 @@ body.presenting .progress,
 body.presenting .overview { display:none !important; }
 body.presenting .stage { position:fixed; inset:0; max-width:none; margin:0; padding:0; }
 body.presenting .slide.current {
-  position:absolute; width:1180px; height:663.75px;   /* 16:9 */
+  position:absolute; width:880px; height:495px;   /* 16:9 */
   display:flex; flex-direction:column; overflow:hidden;
   border-radius:0; border-color:transparent;
   transform-origin:top left;
@@ -232,6 +232,7 @@ body.presenting .slide.current > .slide-body {
 body.presenting .slide.current > .slide-body > .pres-fit {
   flex:0 0 auto; width:100%; transform-origin:top center;
 }
+body.presenting .pres-fit img { display:block; margin-left:auto; margin-right:auto; }
 .pres-hud, .pres-nav { display:none; }
 body.presenting .pres-hud {
   display:block; position:fixed; right:16px; bottom:14px; z-index:80;
@@ -933,7 +934,9 @@ body.presenting.idle .pres-nav { opacity:0; pointer-events:none; }
   // ---------- Mode presentasi: kanvas 16:9 tetap ----------
   // Skala luar dihitung dari kanvas, bukan dari tinggi isi, sehingga bingkai
   // dan ukuran teks tidak berubah saat berpindah slide.
-  var PRES_W = 1180, PRES_H = 663.75;          // rasio 16:9
+  // Kanvas dipatok kecil dalam px CSS supaya teks tampil besar di layar:
+  // ukuran di layar = ukuran font x (lebar layar / PRES_W).
+  var PRES_W = 880, PRES_H = 495;              // rasio 16:9
 
   // Bungkus isi tiap slide sekali saja; pembungkus inilah yang diskalakan
   // bila isinya melampaui kanvas 16:9.
@@ -962,10 +965,22 @@ body.presenting.idle .pres-nav { opacity:0; pointer-events:none; }
     var w = b && b.firstElementChild;
     if (w) {
       w.style.transform = '';
+      var gbr = w.querySelectorAll('img');
+      for (var g = 0; g < gbr.length; g++) { gbr[g].style.height = ''; gbr[g].style.width = ''; }
       var cs = getComputedStyle(b);
       var muat = b.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
-      var perlu = w.offsetHeight;
-      var k2 = perlu > muat ? Math.max(0.6, (muat / perlu) * 0.995) : 1;
+      var lebih = w.offsetHeight - muat;
+      // Rampingkan gambar lebih dulu: lebih baik grafiknya sedikit mengecil
+      // daripada seluruh teks slide ikut mengecil.
+      if (lebih > 0 && gbr.length === 1) {
+        var im = gbr[0], tinggi = im.offsetHeight - lebih;
+        if (tinggi > im.offsetHeight * 0.55) {
+          im.style.height = Math.floor(tinggi) + 'px';
+          im.style.width = 'auto';
+          lebih = w.offsetHeight - muat;
+        }
+      }
+      var k2 = lebih > 0 ? Math.max(0.6, (muat / w.offsetHeight) * 0.995) : 1;
       w.style.transform = k2 < 1 ? 'scale(' + k2 + ')' : '';
       b.style.justifyContent = k2 < 1 ? 'flex-start' : '';   // muat: pusatkan
     }
@@ -1000,7 +1015,11 @@ body.presenting.idle .pres-nav { opacity:0; pointer-events:none; }
         var b = s.querySelector('.slide-body');
         if (b) {
           b.style.justifyContent = '';
-          if (b.firstElementChild) b.firstElementChild.style.transform = '';
+          var w2 = b.firstElementChild;
+          if (w2) {
+            w2.style.transform = '';
+            w2.querySelectorAll('img').forEach(function (im) { im.style.height = ''; im.style.width = ''; });
+          }
         }
       });
     }
