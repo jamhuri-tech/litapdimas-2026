@@ -1,0 +1,1289 @@
+<title>Konsol Seminar Antara</title>
+<meta name="robots" content="noindex, nofollow, noarchive">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+
+<style>
+/* ============================================================
+   Palet diturunkan dari colormap viridis — standar de facto
+   plot ilmiah/genomik: #440154 #31688E #21918C #5EC962 #FDE725
+   ============================================================ */
+:root {
+  --ground:    #FAFBFA;
+  --surface:   #FFFFFF;
+  --surface-2: #F1F5F3;
+  --ink:       #14201D;
+  --ink-2:     #4A5B56;
+  --ink-3:     #5F716B;
+  --line:      #DCE5E1;
+  --line-2:    #C3D0CB;
+  --accent:    #1A6B67;
+  --accent-fill:#21918C;
+  --accent-soft:#E4F1EF;
+  --blue:      #31688E;
+  --good:      #1B7A4B;
+  --good-soft: #E2F1E8;
+  --pending:   #92590F;
+  --pending-soft:#F8EEDC;
+  --crit:      #9E3729;
+  --crit-soft: #F8E7E3;
+  --shadow:    0 1px 2px rgba(20,32,29,.06), 0 8px 24px -16px rgba(20,32,29,.28);
+  --radius:    4px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground:    #0D1412;
+    --surface:   #131E1B;
+    --surface-2: #1A2724;
+    --ink:       #E8EFEC;
+    --ink-2:     #A3B4AE;
+    --ink-3:     #7E918B;
+    --line:      #24332E;
+    --line-2:    #33443E;
+    --accent:    #57C9C0;
+    --accent-fill:#3EAFA6;
+    --accent-soft:#122E2C;
+    --blue:      #7AAFDA;
+    --good:      #5CC58C;
+    --good-soft: #122A1E;
+    --pending:   #DDA34A;
+    --pending-soft:#2B2113;
+    --crit:      #E88574;
+    --crit-soft: #2E1A16;
+    --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+  }
+}
+
+:root[data-theme="dark"] {
+  --ground:    #0D1412;
+  --surface:   #131E1B;
+  --surface-2: #1A2724;
+  --ink:       #E8EFEC;
+  --ink-2:     #A3B4AE;
+  --ink-3:     #7E918B;
+  --line:      #24332E;
+  --line-2:    #33443E;
+  --accent:    #57C9C0;
+  --accent-fill:#3EAFA6;
+  --accent-soft:#122E2C;
+  --blue:      #7AAFDA;
+  --good:      #5CC58C;
+  --good-soft: #122A1E;
+  --pending:   #DDA34A;
+  --pending-soft:#2B2113;
+  --crit:      #E88574;
+  --crit-soft: #2E1A16;
+  --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font-family: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 24px 96px;
+}
+
+/* ---------- Tipografi ---------- */
+h1, h2, h3 {
+  font-family: Archivo, ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  margin: 0;
+}
+h1 { font-size: clamp(28px, 4.2vw, 42px); font-weight: 700; line-height: 1.12; }
+h2 { font-size: 21px; font-weight: 600; line-height: 1.25; }
+h3 { font-size: 15px; font-weight: 600; line-height: 1.35; }
+
+.eyebrow {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.mono { font-family: "IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+
+p { margin: 0 0 12px; max-width: 68ch; color: var(--ink-2); }
+p.lede { color: var(--ink); font-size: 16px; }
+p:last-child { margin-bottom: 0; }
+
+a { color: var(--accent); text-underline-offset: 3px; }
+a:focus-visible, button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ---------- Garis viridis: penanda bagian ---------- */
+.viridis-rule {
+  height: 3px;
+  border: 0;
+  margin: 0;
+  background: linear-gradient(90deg, #440154, #414487, #2A788E, #22A884, #7AD151, #FDE725);
+  opacity: .85;
+}
+
+/* ---------- Bilah halaman ---------- */
+.topbar {
+  position: sticky; top: 0; z-index: 40;
+  background: color-mix(in srgb, var(--ground) 93%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.topbar-in { max-width: 1080px; margin: 0 auto; padding: 9px 24px;
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.brand { font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--ink-3); }
+.sitenav { display: flex; gap: 4px; margin-left: auto; flex-wrap: wrap; }
+.sitenav a { font-family: "IBM Plex Mono", monospace; font-size: 11.5px; letter-spacing: .05em;
+  text-decoration: none; color: var(--ink-2); padding: 5px 10px; border-radius: 3px;
+  border: 1px solid transparent; white-space: nowrap; }
+.sitenav a:hover { background: var(--surface-2); color: var(--accent); }
+.sitenav a[aria-current="page"] { background: var(--accent-soft); color: var(--accent); border-color: var(--accent-fill); }
+
+/* ---------- Masthead ---------- */
+header.masthead {
+  padding: 40px 0 28px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 28px;
+}
+.reg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  align-items: baseline;
+  margin-bottom: 18px;
+}
+.masthead h1 { margin-bottom: 14px; }
+.byline {
+  font-size: 14px;
+  color: var(--ink-2);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+.byline strong { color: var(--ink); font-weight: 600; }
+
+/* ---------- Panel tenggat ---------- */
+.deadline {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 40px;
+}
+.deadline > div {
+  background: var(--surface);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.deadline .big {
+  font-family: Archivo, sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  font-variant-numeric: tabular-nums;
+}
+.deadline .sub { font-size: 13px; color: var(--ink-2); }
+.deadline .hot { color: var(--crit); }
+
+/* ---------- Nav bagian ---------- */
+nav.jump {
+  position: sticky;
+  top: 39px;
+  z-index: 30;
+  background: color-mix(in srgb, var(--ground) 92%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+  margin: 0 -24px 40px;
+  padding: 0 24px;
+}
+nav.jump ul {
+  display: flex;
+  gap: 22px;
+  list-style: none;
+  margin: 0;
+  padding: 11px 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+nav.jump ul::-webkit-scrollbar { display: none; }
+nav.jump a {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px;
+  letter-spacing: .04em;
+  color: var(--ink-2);
+  text-decoration: none;
+  white-space: nowrap;
+  padding-bottom: 2px;
+  border-bottom: 2px solid transparent;
+}
+nav.jump a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ---------- Bagian ---------- */
+section { margin-bottom: 56px; scroll-margin-top: 104px; }
+.sec-head { margin-bottom: 20px; }
+.sec-head .eyebrow { display: block; margin-bottom: 6px; }
+.sec-head h2 { margin-bottom: 8px; }
+
+/* ---------- Kartu ---------- */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.card-body { padding: 18px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.card h3 { margin-bottom: 2px; }
+.card p { font-size: 13.5px; margin: 0; }
+.card .meta {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.path {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11.5px;
+  color: var(--ink-3);
+  word-break: break-all;
+  line-height: 1.45;
+}
+
+/* ---------- Stat tiles ---------- */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.stat { background: var(--surface); padding: 16px 18px; }
+.stat .v {
+  font-family: Archivo, sans-serif;
+  font-size: 27px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+  display: block;
+}
+.stat .k { font-size: 12.5px; color: var(--ink-2); margin-top: 3px; display: block; }
+.stat .n { font-size: 11.5px; color: var(--ink-3); margin-top: 5px; display: block; }
+
+/* ---------- Chip status ---------- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 3px;
+  white-space: nowrap;
+  width: fit-content;
+}
+.chip.good    { background: var(--good-soft);    color: var(--good); }
+.chip.pending { background: var(--pending-soft); color: var(--pending); }
+.chip.crit    { background: var(--crit-soft);    color: var(--crit); }
+.chip.info    { background: var(--accent-soft);  color: var(--accent); }
+.chip .ico { font-weight: 700; font-size: 12px; line-height: 1; }
+
+/* ---------- Hipotesis ---------- */
+.hyp {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+.hyp article {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.hyp article.is-pending { border-color: var(--pending); }
+.hyp .h-id {
+  font-family: Archivo, sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.hyp .h-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.hyp p { font-size: 13.5px; margin: 0; }
+.hyp .ev {
+  font-size: 12.5px;
+  color: var(--ink-2);
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+  margin-top: auto;
+}
+.hyp .ev b { color: var(--ink); font-weight: 600; }
+
+/* ---------- Tabel ---------- */
+.tbl-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+caption {
+  caption-side: top;
+  text-align: left;
+  padding: 14px 16px 12px;
+  font-size: 13px;
+  color: var(--ink-2);
+  border-bottom: 1px solid var(--line);
+}
+caption b { color: var(--ink); font-weight: 600; }
+th, td { padding: 9px 14px; text-align: left; }
+thead th {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  border-bottom: 1px solid var(--line-2);
+  white-space: nowrap;
+}
+tbody tr + tr td { border-top: 1px solid var(--line); }
+td.num, th.num { text-align: right; font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; white-space: nowrap; }
+tbody tr.ref { background: var(--accent-soft); }
+tbody tr.ref td { font-weight: 600; color: var(--ink); }
+tbody tr.flag td { color: var(--ink); }
+tbody tr.flag td.num { color: var(--crit); font-weight: 600; }
+tfoot td { border-top: 1px solid var(--line-2); font-weight: 600; }
+.fam {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10.5px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* ---------- Progres kegiatan ---------- */
+ol.acts { list-style: none; margin: 0; padding: 0; }
+ol.acts > li {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  gap: 14px;
+  align-items: start;
+  padding: 11px 0;
+  border-top: 1px solid var(--line);
+}
+ol.acts > li:first-child { border-top: 0; }
+.act-n {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-3);
+  padding-top: 2px;
+  font-variant-numeric: tabular-nums;
+}
+.act-t { font-size: 13.5px; }
+.act-t .when { display: block; font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+.phase {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  padding: 16px 0 6px;
+  border-top: 1px solid var(--line-2);
+  margin-top: 6px;
+}
+.phase:first-of-type { border-top: 0; margin-top: 0; padding-top: 0; }
+
+/* ---------- Peta publikasi ---------- */
+.pipeline { display: flex; flex-direction: column; gap: 14px; }
+.pub {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 16px 18px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.pub-top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.pub-venue {
+  font-family: "IBM Plex Mono", monospace; font-size: 11px;
+  letter-spacing: .05em; color: var(--ink-3); margin-left: auto;
+}
+.pub h3 { font-size: 15.5px; line-height: 1.35; }
+.pub p { margin: 0; font-size: 13.5px; max-width: none; }
+.pub-auth { font-size: 12.5px !important; color: var(--ink-3) !important; }
+.pub-rel { color: var(--ink-2); }
+.tagline {
+  font-family: "IBM Plex Mono", monospace; font-size: 10.5px; font-weight: 500;
+  letter-spacing: .06em; text-transform: uppercase; color: var(--accent);
+  background: var(--accent-soft); padding: 2px 7px; border-radius: 3px; margin-right: 7px;
+}
+.pub-ev {
+  font-size: 12.5px !important; color: var(--ink-3) !important;
+  border-top: 1px solid var(--line); padding-top: 9px; margin-top: 2px !important;
+}
+.pub-ev strong { color: var(--crit); font-weight: 600; }
+
+/* ---------- Kotak catatan ---------- */
+.note {
+  background: var(--surface-2);
+  border-left: 3px solid var(--accent-fill);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 14px 18px;
+}
+.note.warn { border-left-color: var(--pending); }
+.note h3 { margin-bottom: 6px; }
+.note p { font-size: 13.5px; }
+
+ul.plain { margin: 0; padding-left: 18px; color: var(--ink-2); font-size: 13.5px; }
+ul.plain li { margin-bottom: 5px; }
+ul.plain li:last-child { margin-bottom: 0; }
+ul.plain b { color: var(--ink); font-weight: 600; }
+
+footer {
+  border-top: 1px solid var(--line);
+  padding-top: 20px;
+  font-size: 12.5px;
+  color: var(--ink-3);
+}
+footer p { color: var(--ink-3); font-size: 12.5px; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+html { scroll-behavior: smooth; }
+
+@media (max-width: 640px) {
+  .wrap { padding: 0 16px 64px; }
+  nav.jump { margin: 0 -16px 32px; padding: 0 16px; }
+  ol.acts > li { grid-template-columns: 28px 1fr; }
+  ol.acts > li .chip { grid-column: 2; }
+}
+</style>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <span class="brand">Litapdimas SBK 2026</span>
+    <nav class="sitenav" aria-label="Halaman">
+      <a href="#" aria-current="page">Konsol</a>
+      <a href="laporan.html">Laporan</a>
+      <a href="slide.html">Slide</a>
+      <a href="slide-b.html">Slide B</a>
+      <a href="poster.html">Poster</a>
+    </nav>
+  </div>
+</div>
+
+<div class="wrap">
+
+<header class="masthead">
+  <div class="reg">
+    <span class="eyebrow">Litapdimas SBK 2026</span>
+    <span class="eyebrow mono">Reg. 261030000120319</span>
+    <span class="eyebrow mono">Kontrak 1422 A/LP2M/TL.00/05/2026</span>
+  </div>
+  <h1>Konsol Seminar Antara</h1>
+  <p class="lede">Optimisasi <em>Deep Neural Networks</em> Menggunakan Pendekatan Diagonal <em>Generalized</em> Gauss–Newton untuk Klasifikasi Biosekuens SARS-CoV-2</p>
+  <div class="byline">
+    <span><strong>Dr. Mohammad Jamhuri, M.Si</strong> — Ketua Peneliti</span>
+    <span>Andy Irawan, S.Si</span>
+    <span>M. Alvi Safruddin</span>
+    <span>Mutiara Alvi</span>
+  </div>
+</header>
+
+<hr class="viridis-rule" style="margin-bottom:28px">
+
+<div class="deadline">
+  <div>
+    <span class="eyebrow">Unggah Litapdimas</span>
+    <span class="big" id="d-upload">7–11 Sep</span>
+    <span class="sub" id="d-upload-sub">Laporan antara wajib diunggah</span>
+  </div>
+  <div>
+    <span class="eyebrow">Seminar Antara</span>
+    <span class="big">14–18 Sep</span>
+    <span class="sub">Reviewer &amp; jadwal menyusul</span>
+  </div>
+  <div>
+    <span class="eyebrow">Berkas siap</span>
+    <span class="big">4 <span style="font-size:16px;font-weight:500;color:var(--ink-3)">dari 4</span></span>
+    <span class="sub">Laporan · Keuangan · Slide · Poster</span>
+  </div>
+  <div>
+    <span class="eyebrow">Perlu dilengkapi</span>
+    <span class="big" style="color:var(--pending)">2</span>
+    <span class="sub">Keuangan · ablasi CNN</span>
+  </div>
+</div>
+
+<nav class="jump" aria-label="Navigasi bagian">
+  <ul>
+    <li><a href="#dokumen">Dokumen</a></li>
+    <li><a href="#angka">Angka Kunci</a></li>
+    <li><a href="#hipotesis">Hipotesis</a></li>
+    <li><a href="#hasil">Hasil Utama</a></li>
+    <li><a href="#cnn">Hasil CNN</a></li>
+    <li><a href="#deviasi">Penyesuaian Metode</a></li>
+    <li><a href="#progres">Progres Kegiatan</a></li>
+    <li><a href="#publikasi">Peta Publikasi</a></li>
+    <li><a href="#anggaran">Anggaran</a></li>
+    <li><a href="#sisa">Yang Belum Selesai</a></li>
+  </ul>
+</nav>
+
+<!-- ============================ DOKUMEN ============================ -->
+<section id="dokumen">
+  <div class="sec-head">
+    <span class="eyebrow">Butir 1–3 pengumuman LP2M</span>
+    <h2>Tiga dokumen yang diminta</h2>
+    <p>Ketiganya ditulis dalam LaTeX dan sudah terkompilasi. Berkas ada di komputer Anda pada lintasan di bawah — halaman ini adalah ringkasan isinya, bukan tempat mengunduh.</p>
+  </div>
+
+  <div class="cards">
+    <article class="card">
+      <hr class="viridis-rule">
+      <div class="card-body">
+        <span class="chip good"><span class="ico">✓</span>Siap unggah</span>
+        <h3>Laporan Antara Penelitian</h3>
+        <p>37 halaman. Bab I–IV lengkap sesuai syarat “sekurang-kurangnya sampai Bab IV”, ditambah Bab V simpulan sementara. Kini memuat hasil validasi pada 1D-CNN.</p>
+        <div class="meta">
+          <span class="eyebrow">Berkas</span>
+          <span class="path">Laporan_Antara_Litapdimas_2026/<br>Laporan_Antara_261030000120319_Mohammad_Jamhuri.pdf</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="card">
+      <hr class="viridis-rule">
+      <div class="card-body">
+        <span class="chip pending"><span class="ico">!</span>Perlu angka</span>
+        <h3>Laporan Perkembangan Keuangan</h3>
+        <p>10 halaman. RAB, termin, realisasi per butir, rekapitulasi, pernyataan tanggung jawab belanja, lampiran bukti. Seluruh subtotal dan persentase dihitung otomatis.</p>
+        <div class="meta">
+          <span class="eyebrow">Sunting satu berkas ini saja</span>
+          <span class="path">Laporan_Keuangan_Antara/data-realisasi.tex</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="card">
+      <hr class="viridis-rule">
+      <div class="card-body">
+        <span class="chip good"><span class="ico">✓</span>Siap pakai</span>
+        <h3>Bahan Presentasi Seminar</h3>
+        <p>32 slide Beamer 16:9. Termasuk tiga slide hasil 1D-CNN dan dua slide cadangan untuk sesi tanya jawab.</p>
+        <div class="meta">
+          <span class="eyebrow">Berkas</span>
+          <span class="path">Presentasi_Seminar_Antara/<br>Presentasi_Seminar_Antara_Jamhuri.pdf</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="card">
+      <hr class="viridis-rule">
+      <div class="card-body">
+        <span class="chip good"><span class="ico">✓</span>Siap cetak</span>
+        <h3>Poster A2</h3>
+        <p>420 &times; 594 mm, tiga kolom. Ringkasan lengkap penelitian dalam satu lembar: masalah, metode, ablasi <em>optimizer</em>, analisis kesalahan, status hipotesis, dan luaran.</p>
+        <div class="meta">
+          <span class="eyebrow">Halaman web</span>
+          <span><a href="poster.html">Buka poster &rarr;</a></span>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- ============================ ANGKA KUNCI ============================ -->
+<section id="angka">
+  <div class="sec-head">
+    <span class="eyebrow">Posisi per 31 Agustus 2026</span>
+    <h2>Angka kunci</h2>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <span class="v">342.568</span>
+      <span class="k">genom terkumpul</span>
+      <span class="n">12 lineage · 11,4 GB</span>
+    </div>
+    <div class="stat">
+      <span class="v">255.611</span>
+      <span class="k">dipakai eksperimen</span>
+      <span class="n">7 lineage · lolos kendali mutu</span>
+    </div>
+    <div class="stat">
+      <span class="v">0</span>
+      <span class="k">tingkat kebocoran</span>
+      <span class="n">partisi sadar-grup</span>
+    </div>
+    <div class="stat">
+      <span class="v">0,99642</span>
+      <span class="k">macro-F1 uji</span>
+      <span class="n">±0,00018 atas 3 seed</span>
+    </div>
+    <div class="stat">
+      <span class="v">3 dari 3</span>
+      <span class="k">hipotesis sudah diuji</span>
+      <span class="n">H1 ✓ · H2 sebagian · H3 ✕</span>
+    </div>
+  </div>
+
+  <p style="margin-top:14px;font-size:13px;color:var(--ink-3)">Target proposal adalah 200.000 sekuens dari 11 varian; korpus yang terkumpul melampauinya. Lima <em>lineage</em> dengan sekuens di bawah 500 belum disertakan pada eksperimen utama.</p>
+</section>
+
+<!-- ============================ HIPOTESIS ============================ -->
+<section id="hipotesis">
+  <div class="sec-head">
+    <span class="eyebrow">Bab IV.9 laporan antara</span>
+    <h2>Status ketiga hipotesis</h2>
+    <p>Ketiganya kini sudah diuji: satu terkonfirmasi lintas dua arsitektur, satu hanya berlaku pada k-mer, satu tidak didukung. Ini yang paling mungkin ditanyakan reviewer.</p>
+  </div>
+
+  <div class="hyp">
+    <article>
+      <div class="h-top">
+        <span class="h-id">H1</span>
+        <span class="chip good"><span class="ico">✓</span>Didukung</span>
+      </div>
+      <h3>Efisiensi konvergensi</h3>
+      <p>Lebih efisien daripada metode orde-1, tanpa menurunkan kinerja prediktif.</p>
+      <div class="ev"><b>k-mer:</b> mengungguli kelima aturan orde-1 pada <b>p &lt; 0,02</b>; plateau epoch ~5 vs ~25.<br><b>1D-CNN:</b> macro-F1 0,99 pada <b>epoch 12 vs 39</b> — <b>3,2× lebih cepat</b>, rugi latih akhir 4,3× lebih rendah.<br><span style="color:var(--ink-3)">Yang didukung adalah klaim efisiensi; keunggulan akurasi pada CNN tidak signifikan.</span></div>
+    </article>
+
+    <article class="is-pending">
+      <div class="h-top">
+        <span class="h-id">H2</span>
+        <span class="chip pending"><span class="ico">◐</span>Hanya pada k-mer</span>
+      </div>
+      <h3>Kestabilan pelatihan</h3>
+      <p><em>Damping</em> terkontrol memperbaiki pengkondisian dan kestabilan pelatihan <em>mini-batch</em>.</p>
+      <div class="ev"><b>k-mer:</b> sebaran antar-<em>seed</em> terkecil (0,00036 vs 0,01993 Adagrad); tidak ada divergensi atau NaN.<br><b>1D-CNN: berlawanan arah</b> — DGN-EF turun <b>−0,1609</b> dalam satu epoch, Adam hanya −0,0136. <b>Belum dapat digeneralisasi lintas arsitektur.</b></div>
+    </article>
+
+    <article class="is-pending" style="border-color:var(--crit)">
+      <div class="h-top">
+        <span class="h-id">H3</span>
+        <span class="chip crit"><span class="ico">✕</span>Tidak didukung</span>
+      </div>
+      <h3>Robustness terhadap learning rate</h3>
+      <p>Lebih tahan terhadap variasi <em>learning rate</em> dibanding metode orde-1.</p>
+      <div class="ev">Sapuan η <b>tujuh orde besaran</b>, 5 seed. Dengan <em>clipping</em>: empat aturan teratas <b>persis sama</b> (6 dekade) — <em>clipping</em> menetralkan mekanisme yang diuji. Tanpa <em>clipping</em>: DGN-EF 8 dekade, <b>satu dekade lebih sempit</b> daripada Adam dan SGD. Patah di η = 10³ (F1 0,5155) saat Adam masih 0,9741.<br><span style="color:var(--ink-3)">Diuji pada model konveks; arsitektur nonkonveks penuh belum.</span></div>
+    </article>
+  </div>
+</section>
+
+<!-- ============================ HASIL ============================ -->
+<section id="hasil">
+  <div class="sec-head">
+    <span class="eyebrow">Bab IV.7 — inti pembuktian</span>
+    <h2>Ablasi aturan pembaruan</h2>
+    <p>Model lapis-tunggal dilatih ulang dengan enam aturan pembaruan. Partisi, η = 10⁻⁴, 60 epoch, tiga <em>seed</em>, satu <em>training loop</em> — semuanya identik, tanpa penyetelan hiperparameter.</p>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <caption><b>Macro-F1 pada data uji, sebagai selisih terhadap DGN-EF.</b> Nilai negatif berarti lebih buruk. Kolom p adalah uji Welch terhadap DGN-EF.</caption>
+      <thead>
+        <tr>
+          <th scope="col">Aturan pembaruan</th>
+          <th scope="col">Keluarga</th>
+          <th scope="col" class="num">Δ Macro-F1</th>
+          <th scope="col" class="num">SD</th>
+          <th scope="col" class="num">p</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="ref">
+          <td>DGN-EF <span class="chip info" style="margin-left:6px">Usulan</span></td>
+          <td><span class="fam">Kurvatur</span></td>
+          <td class="num">acuan</td>
+          <td class="num">0,00036</td>
+          <td class="num">—</td>
+        </tr>
+        <tr>
+          <td>RMSprop</td>
+          <td><span class="fam">Adaptif</span></td>
+          <td class="num">−0,00202</td><td class="num">0,00019</td><td class="num">0,0040</td>
+        </tr>
+        <tr>
+          <td>Adam</td>
+          <td><span class="fam">Adaptif</span></td>
+          <td class="num">−0,00227</td><td class="num">0,00068</td><td class="num">0,0170</td>
+        </tr>
+        <tr>
+          <td>AdamW</td>
+          <td><span class="fam">Adaptif</span></td>
+          <td class="num">−0,00276</td><td class="num">0,00016</td><td class="num">0,0026</td>
+        </tr>
+        <tr>
+          <td>SGD + momentum</td>
+          <td><span class="fam">Momentum</span></td>
+          <td class="num">−0,00875</td><td class="num">0,00105</td><td class="num">0,0037</td>
+        </tr>
+        <tr class="flag">
+          <td>Adagrad</td>
+          <td><span class="fam">Adaptif</span></td>
+          <td class="num">−0,10842</td><td class="num">0,01993</td><td class="num">0,0172</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note" style="margin-top:16px">
+    <h3>Bacaannya</h3>
+    <p>DGN-EF unggul 0,00202 atas aturan terdekat, RMSprop — setara <b>5,7 kali sebaran antar-<em>seed</em>-nya sendiri</b>. Urutannya memisahkan dua keluarga dengan bersih: adaptif tanpa kurvatur tertinggal 0,002–0,003, momentum biasa 0,009, dan Adagrad 0,108 karena akumulatornya tumbuh tanpa batas lalu mematikan langkah. Hanya aturan yang mem-<em>precondition</em> atas kurvatur yang memimpin.</p>
+  </div>
+
+  <div class="sec-head" style="margin-top:44px">
+    <h2>Perbandingan dua belas model</h2>
+    <p>Aturan pembaruan ditahan tetap sehingga arsitektur menjadi satu-satunya variabel. Sembilan dari dua belas model bersifat nonlinear, dan tidak satu pun melampaui pengklasifikasi <em>softmax</em> lapis-tunggal.</p>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <caption><b>Macro-F1 pada partisi bebas kebocoran, diurutkan menurut skor.</b> Ukuran adalah berkas parameter tersimpan untuk satu <em>seed</em>.</caption>
+      <thead>
+        <tr>
+          <th scope="col">Model</th>
+          <th scope="col" class="num">Macro-F1</th>
+          <th scope="col" class="num">SD</th>
+          <th scope="col" class="num">Ukuran</th>
+          <th scope="col">Tipe</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="ref"><td>SLP (usulan)</td><td class="num">0,99642</td><td class="num">0,00018</td><td class="num">9 KB</td><td><span class="fam">Linear</span></td></tr>
+        <tr><td>MLP (m = 50)</td><td class="num">0,99590</td><td class="num">0,00054</td><td class="num">54 KB</td><td><span class="fam">Nonlinear</span></td></tr>
+        <tr><td>kmer4-LR</td><td class="num">0,99562</td><td class="num">—</td><td class="num">14 KB</td><td><span class="fam">Linear</span></td></tr>
+        <tr><td>sae4-MLP</td><td class="num">0,99538</td><td class="num">0,00142</td><td class="num">134 KB</td><td><span class="fam">Nonlinear</span></td></tr>
+        <tr><td>kmer4-SVM</td><td class="num">0,99532</td><td class="num">—</td><td class="num">14 KB</td><td><span class="fam">Linear</span></td></tr>
+        <tr><td>kmer5-RF</td><td class="num">0,99512</td><td class="num">0,00038</td><td class="num">2,5 MB</td><td><span class="fam">Nonlinear</span></td></tr>
+        <tr><td>kmer4-RF</td><td class="num">0,99190</td><td class="num">0,00016</td><td class="num">4,5 MB</td><td><span class="fam">Nonlinear</span></td></tr>
+        <tr><td>fcgr4-CNN</td><td class="num">0,99186</td><td class="num">0,00224</td><td class="num">152 KB</td><td><span class="fam">Nonlinear</span></td></tr>
+        <tr><td>tfidf4-RF</td><td class="num">0,99142</td><td class="num">0,00031</td><td class="num">4,6 MB</td><td><span class="fam">Nonlinear</span></td></tr>
+        <tr><td>kmer4-kNN</td><td class="num">0,99036</td><td class="num">—</td><td class="num">112 MB</td><td><span class="fam">Nonlinear</span></td></tr>
+        <tr><td>kmer3-RF</td><td class="num">0,98100</td><td class="num">0,00090</td><td class="num">9,2 MB</td><td><span class="fam">Nonlinear</span></td></tr>
+        <tr class="flag"><td>kmer4-GB</td><td class="num">0,89218</td><td class="num">0,03699</td><td class="num">431 KB</td><td><span class="fam">Nonlinear</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p style="margin-top:14px;font-size:13px;color:var(--ink-3)">Model nonlinear terbaik, MLP, memakai 13.207 parameter berbanding 1.799 dan tetap tertinggal 0,00052 — uji Welch memberi p = 0,23, jadi lapis tersembunyi tidak mengubah apa pun yang terukur. Model terbesar dalam perbandingan (112 MB) justru 0,0061 lebih buruk daripada yang terkecil (9 KB).</p>
+
+  <div class="sec-head" style="margin-top:44px">
+    <h2>Di mana kesalahan tersisa</h2>
+    <p>Model lapis-tunggal membuat 13–15 kesalahan atas 36.481 sekuens uji, setara akurasi 0,99962. Skor <em>macro</em> nyaris sepenuhnya ditentukan oleh satu kelas.</p>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <caption><b>F1 per <em>lineage</em> pada data uji</b>, rerata atas tiga <em>seed</em>.</caption>
+      <thead>
+        <tr>
+          <th scope="col">Lineage</th>
+          <th scope="col" class="num">Korpus</th>
+          <th scope="col" class="num">Uji</th>
+          <th scope="col" class="num">F1 (SLP)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Alpha</td><td class="num">209.712</td><td class="num">29.970</td><td class="num">1,0000</td></tr>
+        <tr><td>Beta</td><td class="num">1.143</td><td class="num">146</td><td class="num">1,0000</td></tr>
+        <tr><td>Delta</td><td class="num">18.485</td><td class="num">2.612</td><td class="num">0,9973</td></tr>
+        <tr><td>Gamma</td><td class="num">9.081</td><td class="num">1.298</td><td class="num">1,0000</td></tr>
+        <tr><td>JN.1</td><td class="num">14.428</td><td class="num">2.052</td><td class="num">1,0000</td></tr>
+        <tr><td>LP.8.1</td><td class="num">921</td><td class="num">124</td><td class="num">1,0000</td></tr>
+        <tr class="flag"><td>Omicron</td><td class="num">1.841</td><td class="num">279</td><td class="num">0,9776</td></tr>
+      </tbody>
+      <tfoot>
+        <tr><td>Macro</td><td class="num">255.611</td><td class="num">36.481</td><td class="num">0,99642</td></tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <p style="margin-top:14px;font-size:13px;color:var(--ink-3)">Kesalahannya satu arah: 9–10 Omicron diberi label Delta, 3 Delta diberi label Omicron, sisanya 1–2 kekeliruan Alpha–Delta. Ukuran kelas bukan penjelasannya — dua kelas terkecil justru sempurna. JN.1 dan LP.8.1 sesungguhnya turunan Omicron yang berlabel sendiri, sehingga yang tersisa di bawah label induk heterogen secara konstruksi.</p>
+</section>
+
+
+<!-- ============================ CNN ============================ -->
+<section id="cnn">
+  <div class="sec-head">
+    <span class="eyebrow">Bab IV.10 — hasil baru, 5 September 2026</span>
+    <h2>Validasi pada 1D-CNN one-hot</h2>
+    <p>Rancangan asli proposal, yang sebelumnya belum pernah dijalankan. Diuji di GPU awan (Tesla T4 × 2) selama 3 jam 15 menit untuk enam <em>run</em>, pada subsampel seimbang 10.736 latih / 2.126 validasi / 2.121 uji.</p>
+  </div>
+
+  <div class="note warn">
+    <h3>Temuan pertama: global average pooling pada proposal mematikan model</h3>
+    <p>Bukan kegagalan optimisasi — Adam bawaan pustaka pun mentok di akurasi kebetulan. <em>Lineage</em> berbeda hanya sekitar 0,1% basa, sehingga merata-ratakan ribuan posisi melarutkan sinyalnya sampai hilang. Bagian arsitektur pada laporan sudah dikoreksi.</p>
+  </div>
+
+  <div class="tbl-wrap" style="margin-top:16px">
+    <table>
+      <caption>Pengaruh operator agregasi. Ragam logit diukur pada inisialisasi; akurasi latih setelah 12 epoch.</caption>
+      <thead><tr><th>Agregasi</th><th class="num">Ragam logit antar-sampel</th><th class="num">Akurasi latih</th></tr></thead>
+      <tbody>
+        <tr class="flag"><td>GAP <span style="color:var(--ink-3)">(rancangan proposal)</span></td><td class="num">3,3 × 10⁻⁵</td><td class="num">0,143 = kebetulan</td></tr>
+        <tr class="ref"><td>GMP <span style="color:var(--ink-3)">(dipakai)</span></td><td class="num">9,4 × 10⁻⁴</td><td class="num">0,964</td></tr>
+        <tr><td>GAP + GMP</td><td class="num">6,2 × 10⁻⁴</td><td class="num">0,952</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="tbl-wrap" style="margin-top:20px">
+    <table>
+      <caption><b>Efisiensi konvergensi — terkonfirmasi.</b> Epoch pertama yang mencapai ambang macro-F1 validasi, rerata tiga <em>seed</em>.</caption>
+      <thead><tr><th>Aturan</th><th class="num">≥ 0,95</th><th class="num">≥ 0,99</th><th class="num">≥ 0,995</th><th class="num">Rugi latih akhir</th></tr></thead>
+      <tbody>
+        <tr class="ref"><td>DGN-EF</td><td class="num">5,7</td><td class="num">12,0</td><td class="num">15,7</td><td class="num">0,0026</td></tr>
+        <tr><td>Adam</td><td class="num">14,3</td><td class="num">38,7</td><td class="num">48,7</td><td class="num">0,0111</td></tr>
+      </tbody>
+      <tfoot><tr><td>Rasio</td><td class="num">2,5×</td><td class="num">3,2×</td><td class="num">3,1×</td><td class="num">4,3×</td></tr></tfoot>
+    </table>
+  </div>
+
+  <div class="tbl-wrap" style="margin-top:20px">
+    <table>
+      <caption><b>Akurasi akhir — tidak signifikan.</b> Macro-F1 pada data uji, tiga <em>seed</em>.</caption>
+      <thead><tr><th>Aturan</th><th class="num">Rerata</th><th class="num">SD</th><th>Per seed</th></tr></thead>
+      <tbody>
+        <tr><td>DGN-EF</td><td class="num">0,99631</td><td class="num">0,00176</td><td class="mono" style="font-size:12px">0,99708 / 0,99430 / 0,99755</td></tr>
+        <tr><td>Adam</td><td class="num">0,99513</td><td class="num">0,00201</td><td class="mono" style="font-size:12px">0,99286 / 0,99582 / 0,99670</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p style="margin-top:14px;font-size:13px;color:var(--ink-3)">Selisih +0,00118, lebih kecil daripada simpangan baku masing-masing. Uji Welch <b>p = 0,487</b>; berpasangan p = 0,552. Pada <em>seed</em> 123 Adam justru unggul 0,00153. Rasio selisih terhadap sebaran hanya 0,67× — pada k-mer angkanya 5,7×. Penjelasan yang paling mungkin adalah efek langit-langit: F1 validasi keduanya menyentuh ~1,0.</p>
+
+  <div class="note warn" style="margin-top:16px">
+    <h3>Dua batasan yang dinyatakan terbuka</h3>
+    <p><b>Adam belum konvergen.</b> Epoch terpilihnya 60, 60, dan 59 dari anggaran 60 — masih membaik saat anggaran habis, jadi angkanya batas bawah. <b>Perancu basa-N masih 0,520</b> pada data latih penuh (kebetulan 0,143), sehingga sebagian sinyal kemungkinan masih artefak mutu sekuensing.</p>
+  </div>
+</section>
+
+<!-- ============================ DEVIASI ============================ -->
+<section id="deviasi">
+  <div class="sec-head">
+    <span class="eyebrow">Bab III.8 — dilaporkan terbuka</span>
+    <h2>Penyesuaian metode terhadap proposal</h2>
+    <p>Bagian paling sensitif di hadapan reviewer. Rumusan masalah, tujuan, dan hipotesis tidak berubah.</p>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Aspek</th>
+          <th scope="col">Rencana proposal</th>
+          <th scope="col">Pelaksanaan</th>
+          <th scope="col">Alasan</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Representasi</td>
+          <td><em>One-hot</em> genom penuh</td>
+          <td>Frekuensi <em>k</em>-mer</td>
+          <td>Arsip cacah <em>k</em>-mer tidak menyimpan posisi basa; ablasi 6 aturan × 3 <em>seed</em> jadi layak secara komputasi</td>
+        </tr>
+        <tr>
+          <td>Arsitektur</td>
+          <td>1D-CNN berlapis</td>
+          <td>SLP dan MLP, dibanding 10 <em>baseline</em></td>
+          <td>Sembilan model nonlinear tidak melampaui model linear; arsitektur ringan mengisolasi aturan pembaruan sebagai satu-satunya variabel</td>
+        </tr>
+        <tr>
+          <td>Partisi data</td>
+          <td><em>Temporal split</em></td>
+          <td>Sadar-grup, bebas kebocoran</td>
+          <td>Sumber kebocoran dominan ternyata genom duplikat-dekat, bukan urutan waktu</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note" style="margin-top:16px">
+    <h3>Argumen yang dipakai</h3>
+    <p>Penyederhanaan arsitektur justru <b>memperkuat validitas internal</b> pengujian, karena aturan pembaruan menjadi satu-satunya variabel yang berbeda antar-kondisi. Partisi sadar-grup adalah kontribusi metodologis yang tidak diantisipasi proposal namun bernilai tersendiri — angka kinerja jadi dapat dibandingkan secara jujur terhadap literatur yang protokol partisinya tidak mengendalikan duplikat-dekat.</p>
+  </div>
+</section>
+
+<!-- ============================ PROGRES ============================ -->
+<section id="progres">
+  <div class="sec-head">
+    <span class="eyebrow">Penomoran mengikuti jadwal proposal</span>
+    <h2>Progres kegiatan</h2>
+    <p>Kegiatan 1–7 tuntas, sebagian lebih cepat dari jadwal. Kegiatan 8 baru terlaksana sebagian.</p>
+  </div>
+
+  <div class="phase">Tahap 1 — Pra-penelitian</div>
+  <ol class="acts">
+    <li>
+      <span class="act-n">01</span>
+      <span class="act-t">Finalisasi proposal, pematangan rancangan metode dan protokol eksperimen<span class="when">Jan–Feb 2026</span></span>
+      <span class="chip good"><span class="ico">✓</span>Selesai</span>
+    </li>
+    <li>
+      <span class="act-n">02</span>
+      <span class="act-t">Studi pustaka terarah, spesifikasi formulasi diagonal-GGN dan skema <em>damping</em><span class="when">Feb–Mar 2026</span></span>
+      <span class="chip good"><span class="ico">✓</span>Selesai</span>
+    </li>
+    <li>
+      <span class="act-n">03</span>
+      <span class="act-t">Persiapan administratif, <em>setup</em> komputasi, rancangan eksperimen<span class="when">Mar 2026</span></span>
+      <span class="chip good"><span class="ico">✓</span>Selesai</span>
+    </li>
+  </ol>
+
+  <div class="phase">Tahap 2 — Pelaksanaan penelitian</div>
+  <ol class="acts">
+    <li>
+      <span class="act-n">04</span>
+      <span class="act-t">Konstruksi dan kurasi dataset SARS-CoV-2: filter kualitas, deduplikasi, <em>labeling</em>, <em>split</em><span class="when">Apr–Mei 2026</span></span>
+      <span class="chip good"><span class="ico">✓</span>Selesai</span>
+    </li>
+    <li>
+      <span class="act-n">05</span>
+      <span class="act-t">Implementasi model dan <em>baseline</em> orde-1 (SGD, Adam/AdamW, RMSProp)<span class="when">Mei–Jun 2026</span></span>
+      <span class="chip good"><span class="ico">✓</span>Selesai</span>
+    </li>
+    <li>
+      <span class="act-n">06</span>
+      <span class="act-t">Implementasi metode usulan Diagonal-GGN + <em>damping</em>, dan uji stabilitas<span class="when">Jun–Jul 2026</span></span>
+      <span class="chip good"><span class="ico">✓</span>Selesai</span>
+    </li>
+    <li>
+      <span class="act-n">07</span>
+      <span class="act-t">Eksperimen utama multi-<em>seed</em>, penyetelan adil, evaluasi efisiensi–stabilitas–akurasi<span class="when">Jul–Sep 2026</span></span>
+      <span class="chip good"><span class="ico">✓</span>Selesai</span>
+    </li>
+    <li>
+      <span class="act-n">08</span>
+      <span class="act-t">Ablasi dan sensitivitas: <em>damping</em>, pembaruan D<sub>t</sub>, dan <em>sweep learning rate</em><span class="when">Sep–Okt 2026</span></span>
+      <span class="chip pending"><span class="ico">◐</span>Sebagian</span>
+    </li>
+  </ol>
+
+  <div class="phase">Tahap 3 — Pasca-penelitian</div>
+  <ol class="acts">
+    <li>
+      <span class="act-n">09</span>
+      <span class="act-t">Analisis hasil, sintesis temuan, penulisan pembahasan akhir<span class="when">Nov 2026</span></span>
+      <span class="chip info"><span class="ico">→</span>Berjalan</span>
+    </li>
+    <li>
+      <span class="act-n">10</span>
+      <span class="act-t">Finalisasi laporan, artikel ilmiah, dan paket reprodusibilitas<span class="when">Nov–Des 2026</span></span>
+      <span class="chip pending"><span class="ico">○</span>Belum</span>
+    </li>
+  </ol>
+</section>
+
+<!-- ============================ PUBLIKASI ============================ -->
+<section id="publikasi">
+  <div class="sec-head">
+    <span class="eyebrow">Luaran dan karya pendahulu</span>
+    <h2>Peta publikasi</h2>
+    <p>Lima naskah berjalan sebagai luaran riset ini, dua artikel sudah terbit sebagai landasan metodologisnya. Status di bawah diambil dari bukti di dalam berkas — sumber buktinya dicantumkan agar dapat Anda periksa ulang.</p>
+  </div>
+
+  <div class="pipeline">
+    <article class="pub">
+      <div class="pub-top">
+        <span class="chip good">Diterima · menunggu terbit</span>
+        <span class="pub-venue">AIRoSIP 2026 · IEEE</span>
+      </div>
+      <h3>Damped Diagonal Generalized Gauss–Newton Preconditioning for Genomic Promoter Classification</h3>
+      <p class="pub-auth">Jamhuri · Irawan · Amiroch · Khudzaifah · Karisma · Widayani</p>
+      <p class="pub-rel"><span class="tagline">Diagonal GGN</span> Inti metode yang sama, diterapkan pada klasifikasi promoter genomik.</p>
+      <p class="pub-ev">Bukti: IEEE Copyright and Consent Form bertanda tangan elektronik, <span class="mono">30-06-2026</span>, memuat judul, keenam penulis, dan nama konferensi. Paket <em>camera-ready</em> dan slide presentasi juga sudah ada.</p>
+    </article>
+
+    <article class="pub">
+      <div class="pub-top">
+        <span class="chip info">Sudah submit</span>
+        <span class="pub-venue">Jambura Journal of Biomathematics</span>
+      </div>
+      <h3>Measuring and Removing Near-Duplicate Contamination in Alignment-Free SARS-CoV-2 Lineage Classification Benchmarks</h3>
+      <p class="pub-auth">Jamhuri · Irawan</p>
+      <p class="pub-rel"><span class="tagline">SARS-CoV-2</span> Sumber skema partisi sadar-grup yang dipakai pada Subbab 3.5 laporan.</p>
+      <p class="pub-ev">Bukti: pesan <em>commit</em> git “Paper A terkirim ke JJBM, preprint dan deposit Zenodo”, serta <em>preprint</em> ber-DOI <span class="mono">10.5281/zenodo.21912227</span>. <strong>Tidak ada tanda terima submit</strong> di dalam berkas — perlu Anda pastikan dari akun OJS atau surel.</p>
+    </article>
+
+    <article class="pub">
+      <div class="pub-top">
+        <span class="chip pending">Siap submit</span>
+        <span class="pub-venue">Jurnal Online Informatika (JOIN)</span>
+      </div>
+      <h3>Nonlinearity Does Not Improve <em>k</em>-mer-Based SARS-CoV-2 Variant Classification: A Controlled Comparison of Twelve Models</h3>
+      <p class="pub-auth">Jamhuri · Irawan</p>
+      <p class="pub-rel"><span class="tagline">GGN + SARS-CoV-2</span> Inilah naskah yang memuat Tabel 5, 6, dan 7 pada laporan antara.</p>
+      <p class="pub-ev">Bukti: catatan <span class="mono">BACA-DULU.md</span> — <em>Declaration Form</em> JOIN belum diisi, naskah 11 halaman melebihi batas 10, dan judul memuat kata “Comparison” yang dilarang rubrik JOIN.</p>
+    </article>
+
+    <article class="pub">
+      <div class="pub-top">
+        <span class="chip info">Sedang direviu</span>
+        <span class="pub-venue">Neural Networks · Elsevier</span>
+      </div>
+      <h3>Error Bounds and Stability of Damped Diagonal Generalized Gauss–Newton Preconditioning for Neural Network Optimization</h3>
+      <p class="pub-auth">Jamhuri · Fahmi · Ismiarti · Jauhari · Karisma · Amiroch · Juhari</p>
+      <p class="pub-rel"><span class="tagline">Teori GGN</span> Dekomposisi <span class="mono">G = D + R</span> dan aturan kalibrasi <em>damping</em> — landasan Subbab 2.5.</p>
+      <p class="pub-ev">Bukti: dideposit sebagai <em>preprint</em> SSRN, DOI <span class="mono">10.2139/ssrn.7181906</span>, ditandai “Preprint, under review” pada bibliografi milik Anda sendiri tertanggal 27 Juli 2026 — lebih baru daripada <em>cover letter</em> 11 Juli yang masih menyebutnya draf.</p>
+    </article>
+
+    <article class="pub">
+      <div class="pub-top">
+        <span class="chip pending">Naskah</span>
+        <span class="pub-venue">Jurnal Elsevier · target belum final</span>
+      </div>
+      <h3>Input Representation Determines Curvature Conditioning in Promoter Classification</h3>
+      <p class="pub-auth">Jamhuri <span style="color:var(--pending)">· penulis pendamping belum ditetapkan</span></p>
+      <p class="pub-rel"><span class="tagline">Pengkondisian kurvatur</span> Bagaimana representasi masukan menentukan pengkondisian — menopang argumen Subbab 3.7.</p>
+      <p class="pub-ev">Bukti: <span class="mono">% TODO: add co-authors before submission</span> pada naskah. Nama folder menyebut Applied Soft Computing, tetapi tidak ada berkas yang memastikan target jurnalnya.</p>
+    </article>
+  </div>
+
+  <div class="sec-head" style="margin-top:40px">
+    <h2>Karya pendahulu yang sudah terbit</h2>
+    <p>Keduanya terbit sebelum periode penelitian ini dan dirujuk sebagai landasan — bukan luaran Litapdimas 2026.</p>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr><th scope="col">Artikel</th><th scope="col">Venue</th><th scope="col">Kaitan</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Neural Networks Optimization via Gauss–Newton based QR Factorization on SARS-CoV-2 Variant Classification<br><span class="pub-auth">Jamhuri · M. I. Irawan · Mukhlash · Iqbal · Puspaningsih</span></td>
+          <td>Systems and Soft Computing, Elsevier<br><span class="mono">vol. 7, art. 200195, 2025</span></td>
+          <td><span class="fam">GGN + SARS-CoV-2</span></td>
+        </tr>
+        <tr>
+          <td>Inexact Generalized Gauss–Newton–CG for Binary Cross-Entropy Minimization<br><span class="pub-auth">Jamhuri · Sari · Amiroch · Juhari · Fitria</span></td>
+          <td>Jurnal Riset Mahasiswa Matematika (JRMM)<br><span class="mono">vol. 5, no. 2, hlm. 102–122, 2025</span></td>
+          <td><span class="fam">Teori GGN</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note crit" style="margin-top:20px">
+    <h3>Yang masih perlu Anda pastikan sendiri</h3>
+    <p><strong>Tanda terima submit JJBM.</strong> Status “sudah submit” bersandar pada pesan <em>commit</em> git dan keterangan Anda, bukan pada tanda terima OJS atau surel editor — tidak ada berkas semacam itu di dalam proyek, dan folder kerja naskahnya sendiri berada di luar folder proyek. Ini satu-satunya status yang belum punya bukti dokumen.</p>
+    <p><strong>Nomor halaman AIRoSIP.</strong> Bibliografi Anda menandai naskah ini <span class="mono">VERIFY final page numbers once published</span>. Perlu diperbarui begitu terbit di IEEE Xplore.</p>
+    <p><strong>Sudah beres:</strong> tabel luaran pada berkas LaTeX laporan dan presentasi kini sudah memuat kelima naskah, sama dengan versi web.</p>
+  </div>
+</section>
+
+<!-- ============================ ANGGARAN ============================ -->
+<section id="anggaran">
+  <div class="sec-head">
+    <span class="eyebrow">Butir 2 pengumuman LP2M</span>
+    <h2>Anggaran</h2>
+  </div>
+
+  <div class="note warn">
+    <h3>Data sementara, dari ingatan</h3>
+    <p>Angka di bawah adalah yang Anda sebutkan sejauh ini dan <strong>belum lengkap</strong> — satu butir langganan terpotong dan belum tersampaikan. Belum ada bukti transaksi yang tersimpan, jadi semua ini masih perlu dicocokkan dengan kuitansi sebelum masuk laporan resmi.</p>
+  </div>
+
+  <div class="stats" style="margin-top:16px">
+    <div class="stat"><span class="v">8,66</span><span class="k">juta terpakai</span><span class="n">29% dari pagu</span></div>
+    <div class="stat"><span class="v">14,20</span><span class="k">juta direncanakan</span><span class="n">47% dari pagu</span></div>
+    <div class="stat"><span class="v">22,86</span><span class="k">juta terpakai + rencana</span><span class="n">76% dari pagu</span></div>
+    <div class="stat"><span class="v">7,14</span><span class="k">juta belum teralokasi</span><span class="n">dari pagu 30 juta</span></div>
+  </div>
+
+  <div class="tbl-wrap" style="margin-top:20px">
+    <table>
+      <caption><b>Belanja yang sudah terjadi</b>, dipetakan ke butir RAB proposal.</caption>
+      <thead>
+        <tr><th scope="col">Uraian</th><th scope="col" class="num">Jumlah (Rp)</th><th scope="col">Butir RAB</th><th scope="col">Kesesuaian</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Registrasi konferensi Scopus AIRoSIP 2026</td><td class="num">3.500.000</td><td>Diseminasi konferensi</td><td><span class="chip good">Sesuai</span></td></tr>
+        <tr><td>Langganan Overleaf, 4 bulan @ 378.000</td><td class="num">1.512.000</td><td>—</td><td><span class="chip crit">Di luar RAB</span></td></tr>
+        <tr><td>Menulis dan menerbitkan buku referensi</td><td class="num">1.500.000</td><td>—</td><td><span class="chip crit">Di luar RAB</span></td></tr>
+        <tr><td>Langganan ChatGPT Plus, 4 bulan @ 350.000</td><td class="num">1.400.000</td><td>—</td><td><span class="chip crit">Di luar RAB</span></td></tr>
+        <tr class="flag"><td>Alat tulis kantor</td><td class="num">750.000</td><td>Operasional penunjang (pagu 500.000)</td><td><span class="chip pending">Lebih 250.000</span></td></tr>
+        <tr><td colspan="4" style="color:var(--pending)">⌁ Satu butir langganan lagi — pesan Anda terpotong di kata “subscribe”</td></tr>
+      </tbody>
+      <tfoot><tr><td>Subtotal sementara</td><td class="num">8.662.000</td><td colspan="2"></td></tr></tfoot>
+    </table>
+  </div>
+
+  <div class="tbl-wrap" style="margin-top:16px">
+    <table>
+      <caption><b>Rencana belanja berikutnya.</b> Kurs USD mengikuti asumsi RAB proposal, Rp 17.000.</caption>
+      <thead>
+        <tr><th scope="col">Uraian</th><th scope="col" class="num">Jumlah (Rp)</th><th scope="col">Butir RAB</th><th scope="col">Kesesuaian</th></tr>
+      </thead>
+      <tbody>
+        <tr class="flag"><td>Konferensi kedua: registrasi 3.500.000 + SPPD &amp; penginapan 2 orang 3.000.000</td><td class="num">6.500.000</td><td>Diseminasi konferensi</td><td><span class="chip crit">Pagu terlampaui</span></td></tr>
+        <tr><td>Biaya publikasi di JJBM / JOIN</td><td class="num">6.000.000</td><td>Publikasi jurnal (pagu 7.500.000)</td><td><span class="chip good">Sesuai</span></td></tr>
+        <tr><td>Colab Pro+, 2 bulan @ USD 50</td><td class="num">1.700.000</td><td>Langganan Colab Pro+ (pagu 2.550.000)</td><td><span class="chip good">Sesuai</span></td></tr>
+      </tbody>
+      <tfoot><tr><td>Subtotal rencana</td><td class="num">14.200.000</td><td colspan="2"></td></tr></tfoot>
+    </table>
+  </div>
+
+  <div class="note crit" style="margin-top:20px">
+    <h3>Tiga persoalan yang muncul dari pemetaan ini</h3>
+    <p><strong>Pos diseminasi konferensi jebol.</strong> Pagunya 5.000.000, sedangkan AIRoSIP 3.500.000 ditambah konferensi kedua 6.500.000 menjadi <strong>10.000.000</strong> — lebih 5.000.000. Perlu diputuskan: geser sebagian ke pos lain, atau kurangi cakupan konferensi kedua.</p>
+    <p><strong>Empat butir belanja tidak ada dalam RAB.</strong> Buku referensi 1.500.000, Overleaf 1.512.000, dan ChatGPT Plus 1.400.000 — totalnya 4.412.000 — tidak punya butir padanan di RAB proposal. RAB hanya mengenal satu pos langganan, yaitu Colab Pro+. Belanja di luar RAB biasanya jadi temuan pemeriksaan, jadi perlu dasar pembenaran atau revisi RAB.</p>
+    <p><strong>Butir RAB senilai 14.450.000 belum Anda sebut sama sekali</strong>, termasuk dua pos terbesar: honorarium pembantu peneliti 4.800.000 dan konsumsi pelaksanaan 4.800.000. Bila semuanya nanti terpakai, total belanja menjadi 37.312.000 — melampaui pagu 30.000.000 sebesar 7.312.000.</p>
+  </div>
+
+  <div class="tbl-wrap" style="margin-top:16px">
+    <table>
+      <caption><b>Butir RAB yang belum tersentuh dalam data Anda.</b></caption>
+      <thead><tr><th scope="col">Butir</th><th scope="col">Tahap</th><th scope="col" class="num">Pagu (Rp)</th></tr></thead>
+      <tbody>
+        <tr><td>Honorarium pembantu peneliti</td><td>Pelaksanaan</td><td class="num">4.800.000</td></tr>
+        <tr><td>Konsumsi pelaksanaan dan evaluasi mingguan</td><td>Pelaksanaan</td><td class="num">4.800.000</td></tr>
+        <tr><td>Pengolahan data</td><td>Pasca</td><td class="num">1.500.000</td></tr>
+        <tr><td>Penyusunan laporan</td><td>Pasca</td><td class="num">1.250.000</td></tr>
+        <tr><td>Penyusunan proposal</td><td>Pra</td><td class="num">1.000.000</td></tr>
+        <tr><td>HKI</td><td>Pasca</td><td class="num">750.000</td></tr>
+        <tr><td>Konsumsi FGD</td><td>Pra</td><td class="num">350.000</td></tr>
+      </tbody>
+      <tfoot><tr><td colspan="2">Total belum tersentuh</td><td class="num">14.450.000</td></tr></tfoot>
+    </table>
+  </div>
+
+  <p style="margin-top:16px;font-size:13px;color:var(--ink-3)">Argumen yang sudah tertulis di laporan: rendahnya serapan pasca-penelitian adalah <b>konsekuensi jadwal</b>, bukan keterlambatan — publikasi, diseminasi, dan HKI memang baru direalisasikan pada triwulan keempat sesuai kegiatan 9 dan 10.</p>
+
+  <p style="margin-top:10px;font-size:13px;color:var(--ink-3)">Persentase termin 70/30 pada berkas data masih nilai contoh bawaan Portal Keuangan, bukan angka resmi dari kontrak Anda. Kontrak yang terbaca tidak mencantumkan pembagian termin, jadi angka ini perlu dipastikan sendiri.</p>
+</section>
+
+<!-- ============================ SISA ============================ -->
+<section id="sisa">
+  <div class="sec-head">
+    <span class="eyebrow">Sebelum 11 September</span>
+    <h2>Yang belum selesai</h2>
+  </div>
+
+  <div class="cards">
+    <article class="card">
+      <div class="card-body">
+        <span class="chip crit"><span class="ico">!</span>Menghambat unggah</span>
+        <h3>Lengkapi data keuangan</h3>
+        <p>Butir langganan yang terpotong, bukti transaksi, dan keputusan atas pos diseminasi yang terlampaui. Lihat bagian Anggaran.</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-body">
+        <span class="chip pending"><span class="ico">!</span>Perlu diputuskan</span>
+        <h3>Periksa framing tiga penyesuaian metode</h3>
+        <p>Justifikasi sudah ditulis, tetapi Anda yang paling tahu bagaimana ingin menyampaikannya ke reviewer. Ini yang akan disorot.</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-body">
+        <span class="chip pending"><span class="ico">◐</span>2 dari 6 selesai</span>
+        <h3>Lengkapi ablasi CNN</h3>
+        <p>Empat aturan tersisa (AdamW, RMSprop, SGD, Adagrad), dua per sesi karena batas 12 jam Kaggle. Sekalian naikkan anggaran ke 100–120 epoch supaya Adam konvergen.</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-body">
+        <span class="chip good"><span class="ico">✓</span>Selesai 6 Sep</span>
+        <h3>Uji H3 tuntas</h3>
+        <p>660 <em>run</em> di laptop, 16 menit. Hasilnya: H3 tidak didukung, arah datanya berlawanan. Sudah masuk laporan dan slide.</p>
+      </div>
+    </article>
+  </div>
+
+  <div class="note" style="margin-top:20px">
+    <h3>Agenda September–Desember yang sudah tertulis di laporan</h3>
+    <ul class="plain" style="margin-top:8px">
+      <li><b>Sep</b> — Melengkapi ablasi CNN: empat aturan tersisa, dua per sesi (batas 12 jam Kaggle)</li>
+      <li><b>Sep</b> — Mengulang ablasi CNN pada 100–120 epoch agar Adam konvergen</li>
+      <li><b>Sep</b> — <s style="color:var(--ink-3)">Sweep learning rate (H3)</s> <span style="color:var(--good)">selesai 6 September</span>; berikutnya sapuan serupa pada arsitektur nonkonveks</li>
+      <li><b>Okt</b> — Menambah <em>seed</em> menjadi sepuluh; sebaran pada CNN terlalu lebar untuk klaim akurasi dengan tiga <em>seed</em></li>
+      <li><b>Sep–Okt</b> — Ablasi <em>damping</em>: variasi λ dan verifikasi empiris aturan kalibrasi stabilitas–fidelitas</li>
+      <li><b>Okt</b> — Ablasi frekuensi pembaruan D<sub>t</sub> terhadap biaya dan akurasi; perluasan cakupan ke <em>lineage</em> rekombinan</li>
+      <li><b>Nov</b> — Analisis hasil, sintesis temuan, pembahasan akhir</li>
+      <li><b>Nov–Des</b> — Finalisasi laporan akhir, artikel ilmiah, paket reprodusibilitas</li>
+    </ul>
+  </div>
+</section>
+
+<hr class="viridis-rule" style="margin-bottom:20px">
+
+<footer>
+  <p>Konsol ini merangkum tiga dokumen Seminar Antara Penelitian SBK 2026. Sumber angka: laporan antara Bab IV, RAB proposal, dan kontrak nomor 1422 A/LP2M/TL.00/05/2026 tanggal 6 Mei 2026. Palet halaman diturunkan dari colormap <em>viridis</em>.</p>
+</footer>
+
+</div>
+
+<script>
+(function () {
+  // Hitung sisa hari menuju batas akhir unggah (11 September 2026).
+  var batas = new Date(2026, 8, 11, 23, 59, 59);
+  var mulai = new Date(2026, 8, 7, 0, 0, 0);
+  var kini = new Date();
+  var hari = Math.ceil((batas - kini) / 86400000);
+
+  var el = document.getElementById('d-upload');
+  var sub = document.getElementById('d-upload-sub');
+  if (!el || !sub) return;
+
+  if (kini > batas) {
+    el.textContent = 'Lewat';
+    sub.textContent = 'Batas unggah 11 Sep 2026 terlampaui';
+  } else if (kini >= mulai) {
+    el.textContent = hari + (hari === 1 ? ' hari' : ' hari');
+    el.classList.add('hot');
+    sub.textContent = 'Jendela unggah sedang terbuka';
+  } else {
+    var keMulai = Math.ceil((mulai - kini) / 86400000);
+    el.textContent = hari + ' hari';
+    if (hari <= 10) el.classList.add('hot');
+    sub.textContent = 'Jendela buka dalam ' + keMulai + ' hari (7–11 Sep)';
+  }
+})();
+</script>
