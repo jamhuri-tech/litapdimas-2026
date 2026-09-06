@@ -107,7 +107,7 @@ kbd { font-family:"IBM Plex Mono",monospace; font-size:10.5px; background:var(--
 .slide-body p { margin:0 0 12px; color:var(--ink-2); font-size:14.5px; line-height:1.62; }
 .slide-body p:last-child { margin-bottom:0; }
 .slide-body strong { color:var(--ink); font-weight:600; }
-.slide-body > ul, .slide-body > ol, .col > ul, .col > ol { margin:0 0 12px; padding-left:20px;
+.slide-body > ul, .slide-body > ol, .pres-fit > ul, .pres-fit > ol, .col > ul, .col > ol { margin:0 0 12px; padding-left:20px;
   color:var(--ink-2); font-size:14px; line-height:1.6; }
 .slide-body li { margin-bottom:6px; }
 .lede { font-size:16px; color:var(--ink); }
@@ -208,23 +208,55 @@ html { scroll-behavior:smooth; }
 }
 
 /* ---------- Mode presentasi ---------- */
+/* ---------- Mode presentasi: kanvas 16:9 tetap ---------- */
 body.presenting { background:#0B0B0B; overflow:hidden; }
+body.presenting.idle { cursor:none; }
 body.presenting .topbar,
 body.presenting .controls,
 body.presenting .progress,
 body.presenting .overview { display:none !important; }
 body.presenting .stage { position:fixed; inset:0; max-width:none; margin:0; padding:0; }
 body.presenting .slide.current {
-  position:absolute; width:1180px; transform-origin:top left;
-  border-color:transparent; box-shadow:0 12px 64px rgba(0,0,0,.55);
+  position:absolute; width:1180px; height:663.75px;   /* 16:9 */
+  display:flex; flex-direction:column; overflow:hidden;
+  border-radius:0; border-color:transparent;
+  transform-origin:top left;
 }
-.pres-hud { display:none; }
+body.presenting .slide.current > .slide-head { flex:0 0 auto; }
+body.presenting .slide.current > .slide-body {
+  flex:1 1 auto; overflow:hidden;
+  display:flex; flex-direction:column; justify-content:center;
+}
+/* Penyusutan dikenakan pada pembungkus, bukan pada kotak pemotongnya:
+   menskalakan kotak yang sekaligus memotong tidak mengubah rasio luapan. */
+body.presenting .slide.current > .slide-body > .pres-fit {
+  flex:0 0 auto; width:100%; transform-origin:top center;
+}
+.pres-hud, .pres-nav { display:none; }
 body.presenting .pres-hud {
-  display:block; position:fixed; right:16px; bottom:12px; z-index:80;
-  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:13px;
-  color:rgba(255,255,255,.5); font-variant-numeric:tabular-nums;
+  display:block; position:fixed; right:16px; bottom:14px; z-index:80;
+  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:12.5px;
+  color:rgba(255,255,255,.8); font-variant-numeric:tabular-nums; pointer-events:none;
+  padding:5px 10px; border-radius:999px; background:rgba(22,24,23,.6);
 }
-@media print { .topbar,.controls,.progress,.overview,.pres-hud{display:none!important} }
+body.presenting .pres-nav {
+  display:flex; gap:4px; align-items:center;
+  position:fixed; left:50%; bottom:14px; transform:translateX(-50%); z-index:81;
+  padding:5px; border-radius:999px;
+  background:rgba(22,24,23,.86); border:1px solid rgba(255,255,255,.16);
+  transition:opacity .35s ease;
+}
+body.presenting.idle .pres-nav { opacity:0; pointer-events:none; }
+.pres-nav button {
+  appearance:none; border:0; background:transparent; cursor:pointer;
+  color:rgba(255,255,255,.82); font:inherit; font-size:13.5px; line-height:1;
+  padding:8px 13px; border-radius:999px;
+}
+.pres-nav button:hover { background:rgba(255,255,255,.16); color:#fff; }
+.pres-nav button:focus-visible { outline:2px solid #fff; outline-offset:2px; }
+.pres-nav button[disabled] { opacity:.35; cursor:default; background:transparent; }
+.pres-nav .sep { width:1px; height:18px; background:rgba(255,255,255,.2); margin:0 3px; }
+@media print { .topbar,.controls,.progress,.overview,.pres-hud,.pres-nav{display:none!important} }
 </style>
 
 <div class="topbar">
@@ -703,6 +735,14 @@ body.presenting .pres-hud {
 <div class="overview" id="overview"></div>
 
 <div class="pres-hud" id="hud"></div>
+<div class="pres-nav" id="presNav" role="group" aria-label="Navigasi presentasi">
+  <button type="button" id="pnHome" title="Slide pertama (Home)">Awal</button>
+  <span class="sep"></span>
+  <button type="button" id="pnPrev" title="Slide sebelumnya (←)" aria-label="Slide sebelumnya">←</button>
+  <button type="button" id="pnNext" title="Slide berikutnya (→)" aria-label="Slide berikutnya">→</button>
+  <span class="sep"></span>
+  <button type="button" id="pnExit" title="Keluar dari mode presentasi (Esc)">Keluar</button>
+</div>
 
 <script>
 (function(){
@@ -717,32 +757,79 @@ body.presenting .pres-hud {
   var ovBtn = document.getElementById('ovBtn');
   var i = 0, ovOn = false;
 
-  // ---------- Mode presentasi ----------
+  // ---------- Mode presentasi: kanvas 16:9 tetap ----------
+  // Skala luar dihitung dari kanvas, bukan dari tinggi isi, sehingga bingkai
+  // dan ukuran teks tidak berubah saat berpindah slide.
+  var PRES_W = 1180, PRES_H = 663.75;          // rasio 16:9
+
+  // Bungkus isi tiap slide sekali saja; pembungkus inilah yang diskalakan
+  // bila isinya melampaui kanvas 16:9.
+  slides.forEach(function (s) {
+    var b = s.querySelector('.slide-body');
+    if (!b || (b.firstElementChild && b.firstElementChild.className === 'pres-fit')) return;
+    var w = document.createElement('div');
+    w.className = 'pres-fit';
+    while (b.firstChild) w.appendChild(b.firstChild);
+    b.appendChild(w);
+  });
   var presBtn = document.getElementById('presBtn');
   var hud = document.getElementById('hud');
-  var presenting = false;
+  var presNav = document.getElementById('presNav');
+  var presenting = false, idleTimer = null;
 
   function fit() {
     if (!presenting) return;
     var s = slides[i];
-    s.style.transform = 'none';
-    var w = 1180, h = s.offsetHeight;
-    if (!h) return;
-    var k = Math.min(window.innerWidth * 0.97 / w, window.innerHeight * 0.94 / h);
+    var k = Math.min(window.innerWidth / PRES_W, window.innerHeight / PRES_H);
     s.style.transform = 'scale(' + k + ')';
-    s.style.left = ((window.innerWidth - w * k) / 2) + 'px';
-    s.style.top  = ((window.innerHeight - h * k) / 2) + 'px';
+    s.style.left = Math.round((window.innerWidth  - PRES_W * k) / 2) + 'px';
+    s.style.top  = Math.round((window.innerHeight - PRES_H * k) / 2) + 'px';
+    // Hanya slide yang isinya melampaui kanvas yang dikecilkan, seperlunya saja.
+    var b = s.querySelector('.slide-body');
+    var w = b && b.firstElementChild;
+    if (w) {
+      w.style.transform = '';
+      var cs = getComputedStyle(b);
+      var muat = b.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      var perlu = w.offsetHeight;
+      var k2 = perlu > muat ? Math.max(0.6, (muat / perlu) * 0.995) : 1;
+      w.style.transform = k2 < 1 ? 'scale(' + k2 + ')' : '';
+      b.style.justifyContent = k2 < 1 ? 'flex-start' : '';   // muat: pusatkan
+    }
     hud.textContent = (i + 1) + ' / ' + slides.length;
+    if (presNav) {
+      document.getElementById('pnPrev').disabled = (i === 0);
+      document.getElementById('pnNext').disabled = (i === slides.length - 1);
+      document.getElementById('pnHome').disabled = (i === 0);
+    }
+  }
+
+  function bangun() {                            // tampilkan lagi bar navigasi
+    if (!presenting) return;
+    document.body.classList.remove('idle');
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(function () {
+      if (presenting) document.body.classList.add('idle');
+    }, 2600);
   }
 
   function setPres(on) {
     presenting = on;
     document.body.classList.toggle('presenting', on);
+    document.body.classList.remove('idle');
     presBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
     presBtn.textContent = on ? 'Keluar presentasi' : 'Presentasi';
-    if (on) { fit(); }
+    if (on) { fit(); bangun(); }
     else {
-      slides.forEach(function (s) { s.style.transform = ''; s.style.left = ''; s.style.top = ''; });
+      clearTimeout(idleTimer);
+      slides.forEach(function (s) {
+        s.style.transform = ''; s.style.left = ''; s.style.top = '';
+        var b = s.querySelector('.slide-body');
+        if (b) {
+          b.style.justifyContent = '';
+          if (b.firstElementChild) b.firstElementChild.style.transform = '';
+        }
+      });
     }
   }
 
@@ -759,6 +846,15 @@ body.presenting .pres-hud {
     }
   });
 
+  if (presNav) {
+    document.getElementById('pnHome').addEventListener('click', function () { show(0, true); bangun(); });
+    document.getElementById('pnPrev').addEventListener('click', function () { show(i - 1, true); bangun(); });
+    document.getElementById('pnNext').addEventListener('click', function () { show(i + 1, true); bangun(); });
+    document.getElementById('pnExit').addEventListener('click', function () { presBtn.click(); });
+  }
+  document.addEventListener('mousemove', bangun);
+  document.addEventListener('mousedown', bangun);
+
   document.addEventListener('fullscreenchange', function () {
     // Esc keluar dari fullscreen: keluar juga dari mode presentasi
     if (!document.fullscreenElement && presenting) setPres(false);
@@ -768,7 +864,7 @@ body.presenting .pres-hud {
   // Buka langsung dalam mode presentasi: tambahkan ?present=1 pada URL.
   // Fullscreen tetap perlu satu klik atau tombol F karena butuh gestur pengguna.
   if (/[?&]present/.test(location.search)) {
-    window.addEventListener('load', function(){ setPres(true); });
+    window.addEventListener('load', function () { setPres(true); });
   }
 
 
@@ -827,6 +923,7 @@ body.presenting .pres-hud {
     else if (e.key === 'Home') { e.preventDefault(); toggleOv(false); show(0, true); }
     else if (e.key === 'End') { e.preventDefault(); toggleOv(false); show(slides.length - 1, true); }
     else if (e.key === 'f' || e.key === 'F') { presBtn.click(); return; }
+    if (presenting && e.key === 'Escape' && !ovOn) { e.preventDefault(); presBtn.click(); return; }
     if (e.key === 'o' || e.key === 'O') { e.preventDefault(); toggleOv(); }
     else if (e.key === 'Escape' && ovOn) { e.preventDefault(); toggleOv(false); }
   });
