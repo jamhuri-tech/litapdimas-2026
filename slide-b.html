@@ -206,6 +206,25 @@ html { scroll-behavior:smooth; }
   .hint { display:none; }
   .stage, .controls, .progress, .topbar-in, .overview { padding-left:14px; padding-right:14px; }
 }
+
+/* ---------- Mode presentasi ---------- */
+body.presenting { background:#0B0B0B; overflow:hidden; }
+body.presenting .topbar,
+body.presenting .controls,
+body.presenting .progress,
+body.presenting .overview { display:none !important; }
+body.presenting .stage { position:fixed; inset:0; max-width:none; margin:0; padding:0; }
+body.presenting .slide.current {
+  position:absolute; width:1180px; transform-origin:top left;
+  border-color:transparent; box-shadow:0 12px 64px rgba(0,0,0,.55);
+}
+.pres-hud { display:none; }
+body.presenting .pres-hud {
+  display:block; position:fixed; right:16px; bottom:12px; z-index:80;
+  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:13px;
+  color:rgba(255,255,255,.5); font-variant-numeric:tabular-nums;
+}
+@media print { .topbar,.controls,.progress,.overview,.pres-hud{display:none!important} }
 </style>
 
 <div class="topbar">
@@ -213,10 +232,10 @@ html { scroll-behavior:smooth; }
     <span class="brand">Litapdimas SBK 2026 &middot; versi B</span>
     <nav class="sitenav" aria-label="Halaman">
       <a href="index.html">Konsol</a>
-      <a href="#">Laporan</a>
+      <a href="laporan.html">Laporan</a>
+      <a href="slide.html">Slide</a>
+      <a href="#" aria-current="page">Slide B</a>
       <a href="poster.html">Poster</a>
-      <a href="#" aria-current="page">Slide</a>
-      <a href="slide-b.html">Slide B</a>
     </nav>
   </div>
 </div>
@@ -225,8 +244,9 @@ html { scroll-behavior:smooth; }
   <button class="btn" id="prev" aria-label="Slide sebelumnya">← Mundur</button>
   <button class="btn" id="next" aria-label="Slide berikutnya">Maju →</button>
   <span class="counter"><span id="cur">1</span> / <span id="tot">0</span></span>
+  <button class="btn" id="presBtn" aria-pressed="false">Presentasi</button>
   <button class="btn" id="ovBtn" aria-pressed="false">Ikhtisar</button>
-  <span class="hint">Navigasi: <kbd>←</kbd> <kbd>→</kbd> · <kbd>Home</kbd> <kbd>End</kbd> · <kbd>O</kbd> ikhtisar</span>
+  <span class="hint">Navigasi: <kbd>←</kbd> <kbd>→</kbd> · <kbd>Home</kbd> <kbd>End</kbd> · <kbd>O</kbd> ikhtisar · <kbd>F</kbd> presentasi</span>
 </div>
 
 <div class="progress"><div class="progress-track"><div class="progress-bar" id="bar"></div></div></div>
@@ -682,6 +702,8 @@ html { scroll-behavior:smooth; }
 
 <div class="overview" id="overview"></div>
 
+<div class="pres-hud" id="hud"></div>
+
 <script>
 (function(){
   var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
@@ -694,6 +716,61 @@ html { scroll-behavior:smooth; }
   var next = document.getElementById('next');
   var ovBtn = document.getElementById('ovBtn');
   var i = 0, ovOn = false;
+
+  // ---------- Mode presentasi ----------
+  var presBtn = document.getElementById('presBtn');
+  var hud = document.getElementById('hud');
+  var presenting = false;
+
+  function fit() {
+    if (!presenting) return;
+    var s = slides[i];
+    s.style.transform = 'none';
+    var w = 1180, h = s.offsetHeight;
+    if (!h) return;
+    var k = Math.min(window.innerWidth * 0.97 / w, window.innerHeight * 0.94 / h);
+    s.style.transform = 'scale(' + k + ')';
+    s.style.left = ((window.innerWidth - w * k) / 2) + 'px';
+    s.style.top  = ((window.innerHeight - h * k) / 2) + 'px';
+    hud.textContent = (i + 1) + ' / ' + slides.length;
+  }
+
+  function setPres(on) {
+    presenting = on;
+    document.body.classList.toggle('presenting', on);
+    presBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    presBtn.textContent = on ? 'Keluar presentasi' : 'Presentasi';
+    if (on) { fit(); }
+    else {
+      slides.forEach(function (s) { s.style.transform = ''; s.style.left = ''; s.style.top = ''; });
+    }
+  }
+
+  presBtn.addEventListener('click', function () {
+    if (!presenting) {
+      var el = document.documentElement;
+      if (el.requestFullscreen) { el.requestFullscreen().catch(function () {}); }
+      setPres(true);
+    } else {
+      if (document.fullscreenElement && document.exitFullscreen) {
+        document.exitFullscreen().catch(function () {});
+      }
+      setPres(false);
+    }
+  });
+
+  document.addEventListener('fullscreenchange', function () {
+    // Esc keluar dari fullscreen: keluar juga dari mode presentasi
+    if (!document.fullscreenElement && presenting) setPres(false);
+  });
+  window.addEventListener('resize', fit);
+
+  // Buka langsung dalam mode presentasi: tambahkan ?present=1 pada URL.
+  // Fullscreen tetap perlu satu klik atau tombol F karena butuh gestur pengguna.
+  if (/[?&]present/.test(location.search)) {
+    window.addEventListener('load', function(){ setPres(true); });
+  }
+
 
   totEl.textContent = slides.length;
 
@@ -708,6 +785,7 @@ html { scroll-behavior:smooth; }
       try { history.replaceState(null, '', '#s' + (i + 1)); } catch (e) {}
     }
     window.scrollTo({ top: 0, behavior: 'auto' });
+    fit();
   }
 
   // Bangun ikhtisar
@@ -748,7 +826,8 @@ html { scroll-behavior:smooth; }
     else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); toggleOv(false); show(i - 1, true); }
     else if (e.key === 'Home') { e.preventDefault(); toggleOv(false); show(0, true); }
     else if (e.key === 'End') { e.preventDefault(); toggleOv(false); show(slides.length - 1, true); }
-    else if (e.key === 'o' || e.key === 'O') { e.preventDefault(); toggleOv(); }
+    else if (e.key === 'f' || e.key === 'F') { presBtn.click(); return; }
+    if (e.key === 'o' || e.key === 'O') { e.preventDefault(); toggleOv(); }
     else if (e.key === 'Escape' && ovOn) { e.preventDefault(); toggleOv(false); }
   });
 
