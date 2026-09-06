@@ -279,7 +279,7 @@ body.presenting.idle .pres-nav { opacity:0; pointer-events:none; }
   <span class="counter"><span id="cur">1</span> / <span id="tot">0</span></span>
   <button class="btn" id="presBtn" aria-pressed="false">Presentasi</button>
   <button class="btn" id="ovBtn" aria-pressed="false">Ikhtisar</button>
-  <span class="hint">Navigasi: <kbd>←</kbd> <kbd>→</kbd> · <kbd>Home</kbd> <kbd>End</kbd> · <kbd>O</kbd> ikhtisar · <kbd>F</kbd> presentasi</span>
+  <span class="hint">Navigasi: <kbd>←</kbd> <kbd>→</kbd> · <kbd>Home</kbd> <kbd>End</kbd> · <kbd>O</kbd> ikhtisar · <kbd>F</kbd> presentasi · ketuk layar untuk maju</span>
 </div>
 
 <div class="progress"><div class="progress-track"><div class="progress-bar" id="bar"></div></div></div>
@@ -936,7 +936,11 @@ body.presenting.idle .pres-nav { opacity:0; pointer-events:none; }
   // dan ukuran teks tidak berubah saat berpindah slide.
   // Kanvas dipatok kecil dalam px CSS supaya teks tampil besar di layar:
   // ukuran di layar = ukuran font x (lebar layar / PRES_W).
-  var PRES_W = 880, PRES_H = 495;              // rasio 16:9
+  // Lebarnya tetap; tingginya mengikuti rasio layar (16:9, 16:10, ...) supaya
+  // selalu memenuhi layar tanpa bilah hitam dan ukuran teks tidak berubah.
+  var PRES_W = 880;                            // lebar kanvas, px CSS
+  var PRES_H_MIN = 495;                        // 16:9 -- kanvas terpendek yang masih memuat semua slide
+  var PRES_H = PRES_H_MIN;
 
   // Bungkus isi tiap slide sekali saja; pembungkus inilah yang diskalakan
   // bila isinya melampaui kanvas 16:9.
@@ -956,10 +960,12 @@ body.presenting.idle .pres-nav { opacity:0; pointer-events:none; }
   function fit() {
     if (!presenting) return;
     var s = slides[i];
-    var k = Math.min(window.innerWidth / PRES_W, window.innerHeight / PRES_H);
-    s.style.transform = 'scale(' + k + ')';
-    s.style.left = Math.round((window.innerWidth  - PRES_W * k) / 2) + 'px';
-    s.style.top  = Math.round((window.innerHeight - PRES_H * k) / 2) + 'px';
+    // Tinggi kanvas mengikuti rasio layar, tetapi tidak pernah lebih pendek
+    // daripada 16:9 -- di bawah itu ada slide yang tidak muat.
+    PRES_H = Math.max(PRES_H_MIN, Math.round(PRES_W * window.innerHeight / window.innerWidth));
+    s.style.width = PRES_W + 'px';
+    s.style.height = PRES_H + 'px';
+    s.style.transform = 'none';
     // Hanya slide yang isinya melampaui kanvas yang dikecilkan, seperlunya saja.
     var b = s.querySelector('.slide-body');
     var w = b && b.firstElementChild;
@@ -984,6 +990,11 @@ body.presenting.idle .pres-nav { opacity:0; pointer-events:none; }
       w.style.transform = k2 < 1 ? 'scale(' + k2 + ')' : '';
       b.style.justifyContent = k2 < 1 ? 'flex-start' : '';   // muat: pusatkan
     }
+    var k = Math.min(window.innerWidth / PRES_W, window.innerHeight / PRES_H);
+    s.style.transform = 'scale(' + k + ')';
+    s.style.left = Math.round((window.innerWidth  - PRES_W * k) / 2) + 'px';
+    s.style.top  = Math.round((window.innerHeight - PRES_H * k) / 2) + 'px';
+
     hud.textContent = (i + 1) + ' / ' + slides.length;
     if (presNav) {
       document.getElementById('pnPrev').disabled = (i === 0);
@@ -1012,6 +1023,7 @@ body.presenting.idle .pres-nav { opacity:0; pointer-events:none; }
       clearTimeout(idleTimer);
       slides.forEach(function (s) {
         s.style.transform = ''; s.style.left = ''; s.style.top = '';
+        s.style.width = ''; s.style.height = '';
         var b = s.querySelector('.slide-body');
         if (b) {
           b.style.justifyContent = '';
@@ -1046,6 +1058,35 @@ body.presenting.idle .pres-nav { opacity:0; pointer-events:none; }
   }
   document.addEventListener('mousemove', bangun);
   document.addEventListener('mousedown', bangun);
+
+  // Ketuk/klik layar untuk maju; sepertiga kiri untuk mundur.
+  var baruGeser = false;
+  function abaikan(t) {
+    return !t || !t.closest || t.closest('.pres-nav, a, button, input, select, textarea');
+  }
+  document.addEventListener('click', function (e) {
+    if (!presenting || abaikan(e.target)) return;
+    if (baruGeser) { baruGeser = false; return; }
+    show(e.clientX < window.innerWidth / 3 ? i - 1 : i + 1, true);
+    bangun();
+  });
+
+  // Geser jari kiri/kanan pada layar sentuh.
+  var mulaiX = null, mulaiY = null;
+  document.addEventListener('touchstart', function (e) {
+    if (!presenting || e.touches.length !== 1) { mulaiX = null; return; }
+    mulaiX = e.touches[0].clientX; mulaiY = e.touches[0].clientY;
+  }, { passive: true });
+  document.addEventListener('touchend', function (e) {
+    if (!presenting || mulaiX === null || abaikan(e.target)) { mulaiX = null; return; }
+    var t = e.changedTouches[0], dx = t.clientX - mulaiX, dy = t.clientY - mulaiY;
+    mulaiX = null;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+      baruGeser = true;                 // jangan dihitung dua kali oleh click
+      show(i + (dx < 0 ? 1 : -1), true);
+      bangun();
+    }
+  }, { passive: true });
 
   document.addEventListener('fullscreenchange', function () {
     // Esc keluar dari fullscreen: keluar juga dari mode presentasi
