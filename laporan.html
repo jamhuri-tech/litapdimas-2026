@@ -876,10 +876,11 @@ figure.viz figcaption b { color:var(--ink); font-weight:600; }
 
   <div class="sub" id="s5-1">
     <h3><span class="n">5.1</span>Simpulan sementara</h3>
-    <p>Sampai dengan akhir Agustus 2026, penelitian telah menyelesaikan kegiatan nomor 1 sampai 7 pada jadwal proposal dan sebagian kegiatan nomor 8. Tiga simpulan sementara dapat ditarik.</p>
+    <p>Sampai dengan awal September 2026, penelitian telah menyelesaikan kegiatan nomor 1 sampai 7 pada jadwal proposal dan sebagian kegiatan nomor 8. Empat simpulan sementara dapat ditarik.</p>
     <p><strong>Pertama</strong>, formulasi operasional diagonal GGN dengan <em>damping</em> terkontrol, persamaan (5), telah berhasil diimplementasikan dengan kompleksitas memori <span class="mono">O(p)</span> dan diuji pada korpus genom berskala 255.611 sekuens. Ini menjawab rumusan masalah pertama.</p>
-    <p><strong>Kedua</strong>, aturan pembaruan tersebut mengungguli seluruh lima <em>optimizer</em> orde-1 pembanding secara signifikan (<span class="mono">p &lt; 0,02</span>) sekaligus mencapai <em>plateau</em> validasi dalam kira-kira seperlima jumlah epoch yang diperlukan Adam. Ini mendukung H1 dan menjawab rumusan masalah ketiga.</p>
-    <p><strong>Ketiga</strong>, sebaran antar-<em>seed</em> terkecil, tiadanya divergensi, serta rugi validasi yang tidak berbalik naik menunjukkan bahwa <em>damping</em> berperan sebagaimana diprediksi secara teoretis. Ini mendukung H2 dan menjawab rumusan masalah kedua. Rumusan masalah keempat, yaitu <em>robustness</em> terhadap variasi <em>learning rate</em>, belum terjawab dan menjadi agenda utama tahap berikutnya.</p>
+    <p><strong>Kedua</strong>, aturan pembaruan tersebut mengungguli seluruh lima <em>optimizer</em> orde-1 pembanding secara signifikan (<span class="mono">p &lt; 0,02</span>) sekaligus mencapai <em>plateau</em> validasi dalam kira-kira seperlima jumlah epoch yang diperlukan Adam. Klaim efisiensi ini terkonfirmasi pula pada arsitektur 1D-CNN <em>one-hot</em>, yang mencapai <em>macro</em>-F1 0,99 pada epoch ke-12 berbanding epoch ke-39 bagi Adam — <strong>3,2× lebih cepat</strong>. Ini mendukung H1 lintas dua arsitektur dan menjawab rumusan masalah ketiga.</p>
+    <p><strong>Ketiga</strong>, pada representasi <em>k</em>-mer sebaran antar-<em>seed</em> terkecil, tiadanya divergensi, serta rugi validasi yang tidak berbalik naik menunjukkan bahwa <em>damping</em> berperan sebagaimana diprediksi secara teoretis. Namun pada arsitektur 1D-CNN arahnya justru berlawanan: rugi validasi DGN-EF turun 0,1609 dalam satu epoch sementara Adam hanya 0,0136. H2 karena itu <strong>hanya didukung pada representasi <em>k</em>-mer</strong> dan belum dapat digeneralisasi lintas arsitektur; rumusan masalah kedua terjawab sebagian.</p>
+    <p><strong>Keempat</strong>, rumusan masalah keempat — <em>robustness</em> terhadap variasi <em>learning rate</em> — kini sudah terjawab, dan jawabannya berlawanan dengan dugaan awal. Di bawah protokol naskah yang memakai <em>gradient clipping</em>, empat aturan teratas memiliki lebar rentang stabil yang persis sama, sehingga protokol itu sendiri tidak dapat menguji H3. Tanpa <em>clipping</em>, rentang stabil DGN-EF satu dekade lebih sempit daripada Adam dan SGD, dan pelatihannya patah pada <span class="mono">η = 10³</span> ketika Adam masih mencapai 0,9741. <strong>H3 tidak didukung.</strong></p>
     <div class="note">
       <h4>Temuan sampingan yang bernilai</h4>
       <p>Pada tugas ini kompleksitas arsitektur tidak berkontribusi — sembilan cara berbeda memasukkan nonlinearitas tidak melampaui batas keputusan linear — sedangkan aturan pembaruan justru berkontribusi. Bagi konteks <em>genomic surveillance</em>, kombinasi model 9 KB dengan aturan berbasis kurvatur menghasilkan sistem yang dapat dilatih ulang pada satu inti CPU dalam hitungan detik.</p>
@@ -893,12 +894,17 @@ figure.viz figcaption b { color:var(--ink); font-weight:600; }
         <caption><b>Tabel 8.</b> Rencana kegiatan tahap lanjut sampai akhir periode penelitian.</caption>
         <thead><tr><th scope="col" class="num">No</th><th scope="col">Kegiatan</th><th scope="col">Target waktu</th></tr></thead>
         <tbody>
-          <tr><td class="num">1</td><td><em>Sweep learning rate</em> lintas beberapa orde besaran untuk keenam aturan pembaruan; pengukuran lebar rentang <span class="mono">η</span> yang stabil <strong>(pengujian H3)</strong></td><td>September 2026</td></tr>
-          <tr><td class="num">2</td><td>Ablasi <em>damping</em>: variasi <span class="mono">λ</span> dan verifikasi empiris aturan kalibrasi stabilitas–fidelitas</td><td>September–Oktober 2026</td></tr>
-          <tr><td class="num">3</td><td>Ablasi frekuensi pembaruan diagonal kurvatur terhadap biaya dan akurasi</td><td>Oktober 2026</td></tr>
-          <tr><td class="num">4</td><td>Perluasan cakupan <em>lineage</em> dengan penambahan korpus untuk varian rekombinan</td><td>Oktober 2026</td></tr>
-          <tr><td class="num">5</td><td>Analisis hasil, sintesis temuan, dan penulisan pembahasan akhir</td><td>November 2026</td></tr>
-          <tr><td class="num">6</td><td>Finalisasi laporan akhir, artikel ilmiah, dan paket reprodusibilitas</td><td>November–Desember 2026</td></tr>
+          <tr><td class="num">1</td><td>Melengkapi ablasi 1D-CNN: empat aturan pembaruan yang tersisa (AdamW, RMSprop, SGD+momentum, Adagrad), dijalankan dua aturan per sesi karena batas 12 jam Kaggle</td><td>September 2026</td></tr>
+          <tr><td class="num">2</td><td>Mengulang ablasi CNN dengan anggaran 100–120 epoch agar Adam mencapai konvergensi; epoch terpilihnya kini masih jatuh pada batas anggaran</td><td>September 2026</td></tr>
+          <tr><td class="num">3</td><td>Sapuan <em>learning rate</em> pada arsitektur nonkonveks penuh (1D-CNN); pengujian H3 pada model konveks sudah tuntas dan dilaporkan pada Subbab 4.10</td><td>September–Oktober 2026</td></tr>
+          <tr><td class="num">4</td><td>Ablasi <em>damping</em>: variasi <span class="mono">λ</span> dan verifikasi empiris aturan kalibrasi stabilitas–fidelitas, termasuk <span class="mono">λ</span> yang lebih besar pada lapis konvolusi untuk menguji dugaan pada H2</td><td>September–Oktober 2026</td></tr>
+          <tr><td class="num">5</td><td>Menambah jumlah <em>seed</em> menjadi sepuluh pada perbandingan aturan pembaruan; sebaran antar-<em>seed</em> pada CNN terlalu lebar untuk klaim akurasi dengan tiga <em>seed</em></td><td>Oktober 2026</td></tr>
+          <tr><td class="num">6</td><td>Memperkuat kendali perancu basa-N: penyaringan lebih ketat dan analisis posisional, karena kendali saat ini masih menghasilkan <em>macro</em>-F1 sebesar 0,520</td><td>Oktober 2026</td></tr>
+          <tr><td class="num">7</td><td>Ablasi frekuensi pembaruan diagonal kurvatur terhadap biaya dan akurasi</td><td>Oktober 2026</td></tr>
+          <tr><td class="num">8</td><td>Perluasan cakupan <em>lineage</em> dengan penambahan korpus untuk varian rekombinan</td><td>Oktober 2026</td></tr>
+          <tr><td class="num">9</td><td>Pembahasan metode bersama narasumber ahli, dua sesi masing-masing empat jam, dengan Dr. Siti Amiroch, M.Si (Universitas Islam Darul Ulum Lamongan) dan Dr. Yan Aditya Pradana, M.Si (Universitas Muhammadiyah Madiun)</td><td>19 dan 26 September 2026</td></tr>
+          <tr><td class="num">10</td><td>Analisis hasil, sintesis temuan, dan penulisan pembahasan akhir</td><td>November 2026</td></tr>
+          <tr><td class="num">11</td><td>Finalisasi laporan akhir, artikel ilmiah, dan paket reprodusibilitas</td><td>November–Desember 2026</td></tr>
         </tbody>
       </table>
     </div>
